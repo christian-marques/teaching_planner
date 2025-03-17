@@ -6,8 +6,9 @@ class FilterDialog extends StatefulWidget {
   final List<String> selectedGenders;
   final List<String> selectedGrades;
   final List<String> selectedNames;
+  final List<int> selectedFrequencies;
   final String selectedSort;
-  final Function(List<String>, List<String>, List<String>, String) onApplyFilters;
+  final Function(List<String>, List<String>, List<String>, List<int>, String) onApplyFilters;
 
   const FilterDialog({
     super.key,
@@ -15,6 +16,7 @@ class FilterDialog extends StatefulWidget {
     required this.selectedGenders,
     required this.selectedGrades,
     required this.selectedNames,
+    required this.selectedFrequencies,
     required this.selectedSort,
     required this.onApplyFilters,
   });
@@ -27,11 +29,13 @@ class _FilterDialogState extends State<FilterDialog> {
   List<String> selectedGenders = [];
   List<String> selectedGrades = [];
   List<String> selectedNames = [];
+  List<int> selectedFrequencies = [];
   String selectedSort = "Nome";
 
   bool expandGender = false;
   bool expandGrade = false;
   bool expandName = false;
+  bool expandFrequency = false;
 
   @override
   void initState() {
@@ -39,23 +43,24 @@ class _FilterDialogState extends State<FilterDialog> {
     selectedGenders = List.from(widget.selectedGenders);
     selectedGrades = List.from(widget.selectedGrades);
     selectedNames = List.from(widget.selectedNames);
+    selectedFrequencies = List.from(widget.selectedFrequencies);
     selectedSort = widget.selectedSort;
   }
 
-  void _toggleSelection(List<String> list, String value) {
+  void _toggleSelection<T>(List<T> list, T value) {
     setState(() {
       list.contains(value) ? list.remove(value) : list.add(value);
     });
   }
 
-  void _toggleAll(List<String> list, List<String> allItems) {
+  void _toggleAll<T>(List<T> list, List<T> allItems) {
     setState(() {
       if (list.length == allItems.length) {
         list.clear();
       } else {
         list
           ..clear()
-          ..addAll(allItems);
+          ..addAll(List<T>.from(allItems)); // Correção para converter explicitamente
       }
     });
   }
@@ -71,9 +76,10 @@ class _FilterDialogState extends State<FilterDialog> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Classificação
             ExpansionTile(
               title: const Text("Classificar por:", style: TextStyle(fontWeight: FontWeight.bold)),
-              children: ["Nome", "Gênero", "Ano Escolar"].map((sort) {
+              children: ["Nome", "Gênero", "Ano Escolar", "Vezes na Semana", "Mensalidade"].map((sort) {
                 return RadioListTile<String>(
                   title: Text(sort),
                   value: sort,
@@ -142,7 +148,35 @@ class _FilterDialogState extends State<FilterDialog> {
             ),
             const Divider(),
 
-            // Filtro por Nome (com Marcar/Desmarcar Todos)
+            // Filtro por Vezes na Semana
+            ExpansionTile(
+              title: const Text("Filtrar por Vezes na Semana:", style: TextStyle(fontWeight: FontWeight.bold)),
+              initiallyExpanded: expandFrequency,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => _toggleAll(selectedFrequencies, [3, 5]),
+                      child: Text(selectedFrequencies.length == 2 ? "Desmarcar Todos" : "Marcar Todos"),
+                    ),
+                  ],
+                ),
+                CheckboxListTile(
+                  title: const Text("3x por semana"),
+                  value: selectedFrequencies.contains(3),
+                  onChanged: (_) => _toggleSelection(selectedFrequencies, 3),
+                ),
+                CheckboxListTile(
+                  title: const Text("5x por semana"),
+                  value: selectedFrequencies.contains(5),
+                  onChanged: (_) => _toggleSelection(selectedFrequencies, 5),
+                ),
+              ],
+            ),
+            const Divider(),
+
+            // Filtro por Nome
             ExpansionTile(
               title: const Text("Filtrar por Nome:", style: TextStyle(fontWeight: FontWeight.bold)),
               initiallyExpanded: expandName,
@@ -177,7 +211,7 @@ class _FilterDialogState extends State<FilterDialog> {
         ),
         ElevatedButton(
           onPressed: () {
-            widget.onApplyFilters(selectedGenders, selectedGrades, selectedNames, selectedSort);
+            widget.onApplyFilters(selectedGenders, selectedGrades, selectedNames, selectedFrequencies, selectedSort);
             Navigator.pop(context);
           },
           child: const Text("Aplicar Filtros"),
