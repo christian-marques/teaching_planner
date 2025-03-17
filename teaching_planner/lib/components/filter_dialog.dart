@@ -7,8 +7,10 @@ class FilterDialog extends StatefulWidget {
   final List<String> selectedGrades;
   final List<String> selectedNames;
   final List<int> selectedFrequencies;
+  final int? selectedStartDay;
+  final int? selectedEndDay;
   final String selectedSort;
-  final Function(List<String>, List<String>, List<String>, List<int>, String) onApplyFilters;
+  final Function(List<String>, List<String>, List<String>, List<int>, int?, int?, String) onApplyFilters;
 
   const FilterDialog({
     super.key,
@@ -17,6 +19,8 @@ class FilterDialog extends StatefulWidget {
     required this.selectedGrades,
     required this.selectedNames,
     required this.selectedFrequencies,
+    required this.selectedStartDay,
+    required this.selectedEndDay,
     required this.selectedSort,
     required this.onApplyFilters,
   });
@@ -30,12 +34,15 @@ class _FilterDialogState extends State<FilterDialog> {
   List<String> selectedGrades = [];
   List<String> selectedNames = [];
   List<int> selectedFrequencies = [];
+  int? selectedStartDay;
+  int? selectedEndDay;
   String selectedSort = "Nome";
 
   bool expandGender = false;
   bool expandGrade = false;
   bool expandName = false;
   bool expandFrequency = false;
+  bool expandPaymentDay = false;
 
   @override
   void initState() {
@@ -44,6 +51,8 @@ class _FilterDialogState extends State<FilterDialog> {
     selectedGrades = List.from(widget.selectedGrades);
     selectedNames = List.from(widget.selectedNames);
     selectedFrequencies = List.from(widget.selectedFrequencies);
+    selectedStartDay = widget.selectedStartDay;
+    selectedEndDay = widget.selectedEndDay;
     selectedSort = widget.selectedSort;
   }
 
@@ -60,7 +69,7 @@ class _FilterDialogState extends State<FilterDialog> {
       } else {
         list
           ..clear()
-          ..addAll(List<T>.from(allItems)); // Correção para converter explicitamente
+          ..addAll(List<T>.from(allItems));
       }
     });
   }
@@ -79,7 +88,8 @@ class _FilterDialogState extends State<FilterDialog> {
             // Classificação
             ExpansionTile(
               title: const Text("Classificar por:", style: TextStyle(fontWeight: FontWeight.bold)),
-              children: ["Nome", "Gênero", "Ano Escolar", "Vezes na Semana", "Mensalidade"].map((sort) {
+              children: ["Nome", "Gênero", "Ano Escolar", "Vezes na Semana", "Mensalidade", "Dia de Vencimento"]
+                  .map((sort) {
                 return RadioListTile<String>(
                   title: Text(sort),
                   value: sort,
@@ -176,28 +186,45 @@ class _FilterDialogState extends State<FilterDialog> {
             ),
             const Divider(),
 
-            // Filtro por Nome
+            // Filtro por Intervalo de Dias de Vencimento
             ExpansionTile(
-              title: const Text("Filtrar por Nome:", style: TextStyle(fontWeight: FontWeight.bold)),
-              initiallyExpanded: expandName,
+              title: const Text("Filtrar por Vencimento:", style: TextStyle(fontWeight: FontWeight.bold)),
+              initiallyExpanded: expandPaymentDay,
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    TextButton(
-                      onPressed: () => _toggleAll(selectedNames, names),
-                      child: Text(selectedNames.length == names.length ? "Desmarcar Todos" : "Marcar Todos"),
+                    const Text("Início:"),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: TextField(
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(border: OutlineInputBorder(), hintText: "Ex: 5"),
+                        onChanged: (value) {
+                          setState(() {
+                            selectedStartDay = int.tryParse(value);
+                          });
+                        },
+                      ),
                     ),
                   ],
                 ),
-                Column(
-                  children: names.map((name) {
-                    return CheckboxListTile(
-                      title: Text(name),
-                      value: selectedNames.contains(name),
-                      onChanged: (_) => _toggleSelection(selectedNames, name),
-                    );
-                  }).toList(),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    const Text("Fim:"),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: TextField(
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(border: OutlineInputBorder(), hintText: "Ex: 20"),
+                        onChanged: (value) {
+                          setState(() {
+                            selectedEndDay = int.tryParse(value);
+                          });
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -211,7 +238,8 @@ class _FilterDialogState extends State<FilterDialog> {
         ),
         ElevatedButton(
           onPressed: () {
-            widget.onApplyFilters(selectedGenders, selectedGrades, selectedNames, selectedFrequencies, selectedSort);
+            widget.onApplyFilters(selectedGenders, selectedGrades, selectedNames, selectedFrequencies, selectedStartDay,
+                selectedEndDay, selectedSort);
             Navigator.pop(context);
           },
           child: const Text("Aplicar Filtros"),

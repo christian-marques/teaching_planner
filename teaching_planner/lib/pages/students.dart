@@ -19,6 +19,8 @@ class _StudentsPageState extends State<StudentsPage> {
   List<String> selectedGrades = [];
   List<String> selectedNames = [];
   List<int> selectedFrequencies = [];
+  int? selectedStartDay;
+  int? selectedEndDay;
   String sortBy = "Nome";
 
   @override
@@ -27,12 +29,14 @@ class _StudentsPageState extends State<StudentsPage> {
     filteredStudents = List.from(students);
   }
 
-  void _applyFilters(List<String> genders, List<String> grades, List<String> names, List<int> frequencies, String sort) {
+  void _applyFilters(List<String> genders, List<String> grades, List<String> names, List<int> frequencies, int? startDay, int? endDay, String sort) {
     setState(() {
       selectedGenders = genders;
       selectedGrades = grades;
       selectedNames = names;
       selectedFrequencies = frequencies;
+      selectedStartDay = startDay;
+      selectedEndDay = endDay;
       sortBy = sort;
 
       filteredStudents = students.where((student) {
@@ -40,7 +44,9 @@ class _StudentsPageState extends State<StudentsPage> {
         bool matchesGrade = selectedGrades.isEmpty || selectedGrades.contains(student.grade);
         bool matchesName = selectedNames.isEmpty || selectedNames.contains(student.name);
         bool matchesFrequency = selectedFrequencies.isEmpty || selectedFrequencies.contains(student.classesPerWeek);
-        return matchesGender && matchesGrade && matchesName && matchesFrequency;
+        bool matchesPaymentDay = (selectedStartDay == null || student.paymentDay >= selectedStartDay!) &&
+            (selectedEndDay == null || student.paymentDay <= selectedEndDay!);
+        return matchesGender && matchesGrade && matchesName && matchesFrequency && matchesPaymentDay;
       }).toList();
 
       _sortStudents();
@@ -55,6 +61,8 @@ class _StudentsPageState extends State<StudentsPage> {
         filteredStudents.sort((a, b) => a.classesPerWeek.compareTo(b.classesPerWeek));
       } else if (sortBy == "Mensalidade") {
         filteredStudents.sort((a, b) => FinanceService.getTuitionFee(a).compareTo(FinanceService.getTuitionFee(b)));
+      } else if (sortBy == "Dia de Vencimento") {
+        filteredStudents.sort((a, b) => a.paymentDay.compareTo(b.paymentDay));
       }
     });
   }
@@ -78,6 +86,8 @@ class _StudentsPageState extends State<StudentsPage> {
                   selectedGrades: selectedGrades,
                   selectedNames: selectedNames,
                   selectedFrequencies: selectedFrequencies,
+                  selectedStartDay: selectedStartDay,
+                  selectedEndDay: selectedEndDay,
                   selectedSort: sortBy,
                   onApplyFilters: _applyFilters,
                 ),
