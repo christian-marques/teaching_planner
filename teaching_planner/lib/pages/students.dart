@@ -29,7 +29,14 @@ class _StudentsPageState extends State<StudentsPage> {
     filteredStudents = List.from(students);
   }
 
-  void _applyFilters(List<String> genders, List<String> grades, List<String> names, List<int> frequencies, int? startDay, int? endDay, String sort) {
+  void _applyFilters(
+      List<String> genders,
+      List<String> grades,
+      List<String> names,
+      List<int> frequencies,
+      int? startDay,
+      int? endDay,
+      String sort) {
     setState(() {
       selectedGenders = genders;
       selectedGrades = grades;
@@ -67,6 +74,10 @@ class _StudentsPageState extends State<StudentsPage> {
     });
   }
 
+  double _calculateTotal() {
+    return filteredStudents.fold(0, (total, student) => total + FinanceService.getTuitionFee(student));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -96,11 +107,39 @@ class _StudentsPageState extends State<StudentsPage> {
           ),
         ],
       ),
-      body: ListView.builder(
-        itemCount: filteredStudents.length,
-        itemBuilder: (context, index) {
-          return StudentTile(student: filteredStudents[index]);
-        },
+      body: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 70), // Espaço para o total
+            child: ListView.builder(
+              itemCount: filteredStudents.length,
+              itemBuilder: (context, index) {
+                return StudentTile(student: filteredStudents[index]);
+              },
+            ),
+          ),
+          Positioned(
+            bottom: 10,
+            left: 20,
+            right: 20,
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+              decoration: BoxDecoration(
+                color: Colors.green,
+                borderRadius: BorderRadius.circular(30),
+                boxShadow: [
+                  BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 2)),
+                ],
+              ),
+              child: Center(
+                child: Text(
+                  "Total: R\$ ${_calculateTotal().toStringAsFixed(2)}",
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
