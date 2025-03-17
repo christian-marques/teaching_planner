@@ -18,9 +18,19 @@ class StudentTile extends StatelessWidget {
         ),
         title: Text(student.name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         subtitle: Text("${student.grade} • ${student.classesPerWeek}x por semana"),
-        trailing: Text(
-          "R\$ ${FinanceService.getTuitionFee(student).toStringAsFixed(2)}",
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.green),
+        trailing: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              "R\$ ${FinanceService.getTuitionFee(student).toStringAsFixed(2)}",
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green),
+            ),
+            Text(
+              "Venc: dia ${student.paymentDay}",
+              style: const TextStyle(fontSize: 12, fontStyle: FontStyle.italic, color: Colors.black),
+            ),
+          ],
         ),
       ),
     );
