@@ -44,6 +44,9 @@ class _FilterDialogState extends State<FilterDialog> {
   bool expandFrequency = false;
   bool expandPaymentDay = false;
 
+  final TextEditingController _startDayController = TextEditingController();
+  final TextEditingController _endDayController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -54,6 +57,17 @@ class _FilterDialogState extends State<FilterDialog> {
     selectedStartDay = widget.selectedStartDay;
     selectedEndDay = widget.selectedEndDay;
     selectedSort = widget.selectedSort;
+
+    // Inicializa os campos de texto com os valores atuais, se existirem
+    _startDayController.text = selectedStartDay?.toString() ?? "";
+    _endDayController.text = selectedEndDay?.toString() ?? "";
+  }
+
+  @override
+  void dispose() {
+    _startDayController.dispose();
+    _endDayController.dispose();
+    super.dispose();
   }
 
   void _toggleSelection<T>(List<T> list, T value) {
@@ -197,6 +211,7 @@ class _FilterDialogState extends State<FilterDialog> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: TextField(
+                        controller: _startDayController,
                         keyboardType: TextInputType.number,
                         decoration: const InputDecoration(border: OutlineInputBorder(), hintText: "Ex: 5"),
                         onChanged: (value) {
@@ -215,6 +230,7 @@ class _FilterDialogState extends State<FilterDialog> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: TextField(
+                        controller: _endDayController,
                         keyboardType: TextInputType.number,
                         decoration: const InputDecoration(border: OutlineInputBorder(), hintText: "Ex: 20"),
                         onChanged: (value) {
