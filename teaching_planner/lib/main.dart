@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'services/firestore_service.dart';
 import 'pages/home.dart';
 import 'pages/students.dart';
 import 'pages/finance.dart';
 import 'pages/calendar.dart';
-import 'pages/schedule.dart'; // Adicionada a nova página
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // await Firebase.initializeApp();
   runApp(const TeachingPlannerApp());
 }
 
@@ -40,7 +43,6 @@ class _MainScreenState extends State<MainScreen> {
     const StudentsPage(),
     const FinancePage(),
     const CalendarPage(),
-    const SchedulePage(), // Grade Horária adicionada
   ];
 
   void _onItemTapped(int index) {
@@ -93,11 +95,6 @@ class _MainScreenState extends State<MainScreen> {
                     leading: const Icon(Icons.calendar_today),
                     title: const Text('Calendário'),
                     onTap: () => _onItemTapped(3),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.schedule),
-                    title: const Text('Grade Horária'), // Adicionada a Grade Horária
-                    onTap: () => _onItemTapped(4),
                   ),
                 ],
               ),

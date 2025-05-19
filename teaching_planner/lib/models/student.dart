@@ -4,7 +4,7 @@ class Student {
   final String grade;
   final int classesPerWeek;
   final int paymentDay;
-  final Map<String, List<String>> schedule; // Novo campo de horários
+  final double discount;
 
   Student({
     required this.name,
@@ -12,6 +12,6 @@ class Student {
     required this.grade,
     required this.classesPerWeek,
     required this.paymentDay,
-    required this.schedule,
+    required this.discount,
   });
 }

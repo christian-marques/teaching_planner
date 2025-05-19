@@ -7,7 +7,7 @@ class FinancePage extends StatelessWidget {
   const FinancePage({super.key});
 
   double _calculateTotal(List<Student> students) {
-    return students.fold(0, (total, student) => total + FinanceService.getTuitionFee(student));
+    return students.fold(0, (total, student) => total + FinanceService.getTuitionFee(student) - FinanceService.getDiscount(student));
   }
 
   @override
@@ -56,13 +56,23 @@ class FinancePage extends StatelessWidget {
                     child: DataTable(
                       headingRowColor: MaterialStateColor.resolveWith((states) => Colors.grey[300]!),
                       columns: const [
+                        DataColumn(label: Text("2x por Semana", style: TextStyle(fontWeight: FontWeight.bold))),
                         DataColumn(label: Text("3x por Semana", style: TextStyle(fontWeight: FontWeight.bold))),
+                        DataColumn(label: Text("4x por Semana", style: TextStyle(fontWeight: FontWeight.bold))),
                         DataColumn(label: Text("5x por Semana", style: TextStyle(fontWeight: FontWeight.bold))),
                       ],
                       rows: tuitionEntries.map((entry) {
                         return DataRow(cells: [
                           DataCell(Text(
+                            "R\$ ${entry.value[2]?.toStringAsFixed(2) ?? "-"}",
+                            style: const TextStyle(fontSize: 16, color: Colors.green, fontWeight: FontWeight.bold),
+                          )),
+                          DataCell(Text(
                             "R\$ ${entry.value[3]?.toStringAsFixed(2) ?? "-"}",
+                            style: const TextStyle(fontSize: 16, color: Colors.green, fontWeight: FontWeight.bold),
+                          )),
+                          DataCell(Text(
+                            "R\$ ${entry.value[4]?.toStringAsFixed(2) ?? "-"}",
                             style: const TextStyle(fontSize: 16, color: Colors.green, fontWeight: FontWeight.bold),
                           )),
                           DataCell(Text(

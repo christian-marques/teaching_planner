@@ -91,7 +91,7 @@ class _FilterDialogState extends State<FilterDialog> {
   @override
   Widget build(BuildContext context) {
     List<String> grades = widget.students.map((s) => s.grade).toSet().toList();
-    List<String> names = widget.students.map((s) => s.name).toList();
+    // List<String> names = widget.students.map((s) => s.name).toList();
 
     return AlertDialog(
       title: const Text("Filtrar e Classificar"),
@@ -181,15 +181,25 @@ class _FilterDialogState extends State<FilterDialog> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     TextButton(
-                      onPressed: () => _toggleAll(selectedFrequencies, [3, 5]),
-                      child: Text(selectedFrequencies.length == 2 ? "Desmarcar Todos" : "Marcar Todos"),
+                      onPressed: () => _toggleAll(selectedFrequencies, [2, 3, 4, 5]),
+                      child: Text(selectedFrequencies.length == 4 ? "Desmarcar Todos" : "Marcar Todos"),
                     ),
                   ],
+                ),
+                CheckboxListTile(
+                  title: const Text("2x por semana"),
+                  value: selectedFrequencies.contains(2),
+                  onChanged: (_) => _toggleSelection(selectedFrequencies, 2),
                 ),
                 CheckboxListTile(
                   title: const Text("3x por semana"),
                   value: selectedFrequencies.contains(3),
                   onChanged: (_) => _toggleSelection(selectedFrequencies, 3),
+                ),
+                CheckboxListTile(
+                  title: const Text("4x por semana"),
+                  value: selectedFrequencies.contains(4),
+                  onChanged: (_) => _toggleSelection(selectedFrequencies, 4),
                 ),
                 CheckboxListTile(
                   title: const Text("5x por semana"),

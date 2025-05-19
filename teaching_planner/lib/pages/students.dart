@@ -75,7 +75,7 @@ class _StudentsPageState extends State<StudentsPage> {
   }
 
   double _calculateTotal() {
-    return filteredStudents.fold(0, (total, student) => total + FinanceService.getTuitionFee(student));
+    return filteredStudents.fold(0, (total, student) => total + FinanceService.getTuitionFee(student) - FinanceService.getDiscount(student));
   }
 
   @override

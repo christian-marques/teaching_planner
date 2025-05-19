@@ -23,7 +23,7 @@ class StudentTile extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              "R\$ ${FinanceService.getTuitionFee(student).toStringAsFixed(2)}",
+              "R\$ ${(FinanceService.getTuitionFee(student) - FinanceService.getDiscount(student)).toStringAsFixed(2)}",
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green),
             ),
             Text(
