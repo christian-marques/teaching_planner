@@ -55,6 +55,22 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<void> _editStudent(int index) async {
+    final Student? editedStudent = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => StudentFormPage(student: _students[index]),
+      ),
+    );
+
+    if (editedStudent != null) {
+      setState(() {
+        _students[index] = editedStudent;
+      });
+      await StudentStorageService.saveStudents(_students);
+    }
+  }
+
   Future<void> _removeStudent(int index) async {
     setState(() {
       _students.removeAt(index);
@@ -106,9 +122,19 @@ class _HomePageState extends State<HomePage> {
               'Pagamento: dia ${student.paymentDay}',
             ),
             isThreeLine: true,
-            trailing: IconButton(
-              icon: const Icon(Icons.delete_outline),
-              onPressed: () => _removeStudent(index),
+            onTap: () => _editStudent(index),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.edit_outlined),
+                  onPressed: () => _editStudent(index),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete_outline),
+                  onPressed: () => _removeStudent(index),
+                ),
+              ],
             ),
           ),
         );

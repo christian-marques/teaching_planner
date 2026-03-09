@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import '../models/students.dart';
 
 class StudentFormPage extends StatefulWidget {
-  const StudentFormPage({super.key});
+  final Student? student;
+
+  const StudentFormPage({super.key, this.student});
 
   @override
   State<StudentFormPage> createState() => _StudentFormPageState();
@@ -16,13 +18,7 @@ class _StudentFormPageState extends State<StudentFormPage> {
   String? _selectedLevel;
   String? _selectedYear;
 
-  final List<Map<String, TextEditingController>> _scheduleControllers = [
-    {
-      'weekDay': TextEditingController(),
-      'startHour': TextEditingController(),
-      'endHour': TextEditingController(),
-    }
-  ];
+  final List<Map<String, TextEditingController>> _scheduleControllers = [];
 
   static const List<String> _levels = ['Fundamental', 'Médio'];
   static const List<String> _years = [
@@ -43,6 +39,36 @@ class _StudentFormPageState extends State<StudentFormPage> {
     'Quinta',
     'Sexta',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (widget.student != null) {
+      final student = widget.student!;
+
+      _nameController.text = student.name;
+      _paymentDayController.text = student.paymentDay.toString();
+      _selectedLevel = student.schoolLevel;
+      _selectedYear = student.schoolYear;
+
+      for (final schedule in student.schedules) {
+        _scheduleControllers.add({
+          'weekDay': TextEditingController(text: schedule.weekDay),
+          'startHour': TextEditingController(text: schedule.startHour),
+          'endHour': TextEditingController(text: schedule.endHour),
+        });
+      }
+    }
+
+    if (_scheduleControllers.isEmpty) {
+      _scheduleControllers.add({
+        'weekDay': TextEditingController(),
+        'startHour': TextEditingController(),
+        'endHour': TextEditingController(),
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -191,9 +217,11 @@ class _StudentFormPageState extends State<StudentFormPage> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isEditing = widget.student != null;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Novo aluno'),
+        title: Text(isEditing ? 'Editar aluno' : 'Novo aluno'),
         backgroundColor: const Color(0xFFF5DEB3),
       ),
       body: Padding(
@@ -310,7 +338,7 @@ class _StudentFormPageState extends State<StudentFormPage> {
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: _saveStudent,
-                child: const Text('Salvar aluno'),
+                child: Text(isEditing ? 'Salvar alterações' : 'Salvar aluno'),
               ),
             ],
           ),
