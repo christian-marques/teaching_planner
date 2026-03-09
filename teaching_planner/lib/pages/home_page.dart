@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/students.dart';
+import '../services/student_storage_service.dart';
 import 'student_form_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -11,6 +12,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final List<Student> _students = [];
+  bool _isLoading = true;
 
   static const List<String> _weekDays = [
     'Segunda',
@@ -19,6 +21,23 @@ class _HomePageState extends State<HomePage> {
     'Quinta',
     'Sexta',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStudents();
+  }
+
+  Future<void> _loadStudents() async {
+    final students = await StudentStorageService.getStudents();
+
+    setState(() {
+      _students
+        ..clear()
+        ..addAll(students);
+      _isLoading = false;
+    });
+  }
 
   Future<void> _openStudentForm() async {
     final Student? newStudent = await Navigator.push(
@@ -32,13 +51,15 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         _students.add(newStudent);
       });
+      await StudentStorageService.saveStudents(_students);
     }
   }
 
-  void _removeStudent(int index) {
+  Future<void> _removeStudent(int index) async {
     setState(() {
       _students.removeAt(index);
     });
+    await StudentStorageService.saveStudents(_students);
   }
 
   Map<String, List<Map<String, String>>> _groupSchedulesByDay() {
@@ -139,6 +160,14 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Teaching Planner'),

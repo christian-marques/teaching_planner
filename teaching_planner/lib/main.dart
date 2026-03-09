@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'pages/home_page.dart';
+import 'services/student_storage_service.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await StudentStorageService.init();
   runApp(const TeachingPlannerApp());
 }
 
