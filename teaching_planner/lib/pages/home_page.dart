@@ -2,20 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/students.dart';
 import '../services/student_storage_service.dart';
-import '../utils/currency_input_formatter.dart';
 import 'student_form_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage>
-    with SingleTickerProviderStateMixin {
+class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
   final List<Student> _students = [];
   bool _isLoading = true;
   late TabController _tabController;
+
   static const List<String> _weekDays = [
     'Segunda',
     'Terça',
@@ -23,6 +23,7 @@ class _HomePageState extends State<HomePage>
     'Quinta',
     'Sexta',
   ];
+
   final List<String> _priceTableRows = [
     '1º Fundamental',
     '2º Fundamental',
@@ -37,7 +38,9 @@ class _HomePageState extends State<HomePage>
     '2º Médio',
     '3º Médio',
   ];
+
   final Map<String, Map<int, TextEditingController>> _priceControllers = {};
+
   @override
   void initState() {
     super.initState();
@@ -59,16 +62,19 @@ class _HomePageState extends State<HomePage>
   @override
   void dispose() {
     _tabController.dispose();
+
     for (final rowMap in _priceControllers.values) {
       for (final controller in rowMap.values) {
         controller.dispose();
       }
     }
+
     super.dispose();
   }
 
   Future<void> _loadStudents() async {
     final students = await StudentStorageService.getStudents();
+
     setState(() {
       _students
         ..clear()
@@ -80,8 +86,11 @@ class _HomePageState extends State<HomePage>
   Future<void> _openStudentForm() async {
     final Student? newStudent = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const StudentFormPage()),
+      MaterialPageRoute(
+        builder: (_) => const StudentFormPage(),
+      ),
     );
+
     if (newStudent != null) {
       setState(() {
         _students.add(newStudent);
@@ -97,6 +106,7 @@ class _HomePageState extends State<HomePage>
         builder: (_) => StudentFormPage(student: _students[index]),
       ),
     );
+
     if (editedStudent != null) {
       setState(() {
         _students[index] = editedStudent;
@@ -112,19 +122,75 @@ class _HomePageState extends State<HomePage>
     await StudentStorageService.saveStudents(_students);
   }
 
+  Future<void> _togglePaid(int index, bool value) async {
+    setState(() {
+      _students[index] = _students[index].copyWith(hasPaid: value);
+    });
+    await StudentStorageService.saveStudents(_students);
+  }
+
+  String _calculateEndHour(String startHour) {
+    final parsed = int.tryParse(startHour);
+    if (parsed == null) return '';
+    return '${parsed + 1}';
+  }
+
   Map<String, List<Map<String, String>>> _groupSchedulesByDay() {
     final Map<String, List<Map<String, String>>> grouped = {
       for (final day in _weekDays) day: [],
     };
+
     for (final student in _students) {
       for (final schedule in student.schedules) {
         grouped[schedule.weekDay]?.add({
           'name': student.name,
-          'time': '${schedule.startHour} às ${schedule.endHour}',
+          'time': '${schedule.startHour}h às ${_calculateEndHour(schedule.startHour)}h',
         });
       }
     }
+
     return grouped;
+  }
+
+  String _getPriceRowLabel(Student student) {
+    if (student.schoolLevel == 'Fundamental') {
+      return '${student.schoolYear} Fundamental';
+    }
+    return '${student.schoolYear} Médio';
+  }
+
+  double _getBasePrice(Student student) {
+    final rowLabel = _getPriceRowLabel(student);
+    final controller = _priceControllers[rowLabel]?[student.classesPerWeek];
+
+    if (controller == null) return 0.0;
+
+    final digits = controller.text.replaceAll(RegExp(r'[^0-9]'), '');
+    if (digits.isEmpty) return 0.0;
+
+    return double.parse(digits);
+  }
+
+  double _getFinalPrice(Student student) {
+    return _getBasePrice(student) + student.priceAdjustment;
+  }
+
+  double _getReceivedTotal() {
+    return _students
+        .where((student) => student.hasPaid)
+        .fold(0.0, (sum, student) => sum + _getFinalPrice(student));
+  }
+
+  double _getPendingTotal() {
+    return _students
+        .where((student) => !student.hasPaid)
+        .fold(0.0, (sum, student) => sum + _getFinalPrice(student));
+  }
+
+  String _formatCurrency(double value) {
+    final isNegative = value < 0;
+    final absValue = value.abs().toStringAsFixed(0);
+    return '${isNegative ? '-' : ''}R\$ $absValue,00';
   }
 
   Widget _buildStudentsSection() {
@@ -136,10 +202,12 @@ class _HomePageState extends State<HomePage>
         ),
       );
     }
+
     return Column(
       children: _students.asMap().entries.map((entry) {
         final int index = entry.key;
         final Student student = entry.value;
+
         return Card(
           margin: const EdgeInsets.only(bottom: 8),
           child: ListTile(
@@ -174,6 +242,7 @@ class _HomePageState extends State<HomePage>
 
   Widget _buildScheduleTextBlock() {
     final groupedSchedules = _groupSchedulesByDay();
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -181,6 +250,7 @@ class _HomePageState extends State<HomePage>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: _weekDays.map((day) {
             final items = groupedSchedules[day] ?? [];
+
             return Padding(
               padding: const EdgeInsets.only(bottom: 16),
               child: Column(
@@ -252,21 +322,101 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget _buildPendingTab() {
-    return const Center(
-      child: Text(
-        'Quanto falta receber',
-        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-      ),
+    if (_students.isEmpty) {
+      return const Center(
+        child: Text(
+          'Nenhum aluno cadastrado.',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+      );
+    }
+
+    return Stack(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+          child: ListView.builder(
+            itemCount: _students.length,
+            itemBuilder: (context, index) {
+              final student = _students[index];
+              final finalPrice = _getFinalPrice(student);
+
+              return Card(
+                margin: const EdgeInsets.only(bottom: 8),
+                child: CheckboxListTile(
+                  value: student.hasPaid,
+                  onChanged: (value) {
+                    if (value != null) {
+                      _togglePaid(index, value);
+                    }
+                  },
+                  title: Text(
+                    student.name,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Text(
+                    '${student.schoolLevel} - ${student.schoolYear}\n'
+                    '${_formatCurrency(finalPrice)}',
+                  ),
+                  isThreeLine: true,
+                  controlAffinity: ListTileControlAffinity.leading,
+                ),
+              );
+            },
+          ),
+        ),
+        Positioned(
+          left: 16,
+          right: 16,
+          bottom: 16,
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.green.shade700,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 8,
+                  offset: Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Já recebi: ${_formatCurrency(_getReceivedTotal())}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Falta receber: ${_formatCurrency(_getPendingTotal())}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildPriceInput(String rowLabel, int daysPerWeek) {
     return SizedBox(
-      width: 110,
+      width: 125,
       child: TextField(
         controller: _priceControllers[rowLabel]![daysPerWeek],
         keyboardType: TextInputType.number,
-        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+        inputFormatters: [
+          FilteringTextInputFormatter.digitsOnly,
+        ],
         textAlign: TextAlign.right,
         decoration: const InputDecoration(
           prefixText: 'R\$ ',
@@ -276,6 +426,9 @@ class _HomePageState extends State<HomePage>
           border: OutlineInputBorder(),
           contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 10),
         ),
+        onChanged: (_) {
+          setState(() {});
+        },
       ),
     );
   }
@@ -307,7 +460,9 @@ class _HomePageState extends State<HomePage>
               },
               children: [
                 const TableRow(
-                  decoration: BoxDecoration(color: Color(0xFFF5DEB3)),
+                  decoration: BoxDecoration(
+                    color: Color(0xFFF5DEB3),
+                  ),
                   children: [
                     Padding(
                       padding: EdgeInsets.all(12),
@@ -381,8 +536,13 @@ class _HomePageState extends State<HomePage>
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
     }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Teaching Planner'),
