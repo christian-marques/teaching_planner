@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/students.dart';
 import '../services/student_storage_service.dart';
+import '../models/price_table.dart';
+import '../services/price_table_storage_service.dart';
 import 'student_form_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -46,7 +48,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
     _initializePriceTableControllers();
-    _loadStudents();
+    _loadInitialData();
   }
 
   void _initializePriceTableControllers() {
@@ -72,15 +74,45 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     super.dispose();
   }
 
-  Future<void> _loadStudents() async {
+  Future<void> _loadInitialData() async {
     final students = await StudentStorageService.getStudents();
+    final priceRows = await PriceTableStorageService.getPriceTable();
 
     setState(() {
       _students
         ..clear()
         ..addAll(students);
+
+      if (priceRows.isNotEmpty) {
+        for (final row in priceRows) {
+          _priceControllers[row.label]?[2]?.text =
+              row.price2Days == 0 ? '' : row.price2Days.toString();
+          _priceControllers[row.label]?[3]?.text =
+              row.price3Days == 0 ? '' : row.price3Days.toString();
+          _priceControllers[row.label]?[5]?.text =
+              row.price5Days == 0 ? '' : row.price5Days.toString();
+        }
+      }
+
       _isLoading = false;
     });
+  }
+
+  Future<void> _savePriceTable() async {
+    final rows = _priceTableRows.map((label) {
+      final price2 = int.tryParse(_priceControllers[label]![2]!.text) ?? 0;
+      final price3 = int.tryParse(_priceControllers[label]![3]!.text) ?? 0;
+      final price5 = int.tryParse(_priceControllers[label]![5]!.text) ?? 0;
+
+      return PriceTableRow(
+        label: label,
+        price2Days: price2,
+        price3Days: price3,
+        price5Days: price5,
+      );
+    }).toList();
+
+    await PriceTableStorageService.savePriceTable(rows);
   }
 
   Future<void> _openStudentForm() async {
@@ -407,7 +439,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       ],
     );
   }
-
+  
   Widget _buildPriceInput(String rowLabel, int daysPerWeek) {
     return SizedBox(
       width: 125,
@@ -426,12 +458,14 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           border: OutlineInputBorder(),
           contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 10),
         ),
-        onChanged: (_) {
+        onChanged: (_) async {
           setState(() {});
+          await _savePriceTable();
         },
       ),
     );
   }
+
 
   Widget _buildPriceTableTab() {
     return ListView(
