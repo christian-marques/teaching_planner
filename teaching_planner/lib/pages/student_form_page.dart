@@ -3,9 +3,7 @@ import '../models/students.dart';
 
 class StudentFormPage extends StatefulWidget {
   final Student? student;
-
   const StudentFormPage({super.key, this.student});
-
   @override
   State<StudentFormPage> createState() => _StudentFormPageState();
 }
@@ -14,12 +12,9 @@ class _StudentFormPageState extends State<StudentFormPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _paymentDayController = TextEditingController();
-
   String? _selectedLevel;
   String? _selectedYear;
-
   final List<Map<String, TextEditingController>> _scheduleControllers = [];
-
   static const List<String> _levels = ['Fundamental', 'Médio'];
   static const List<String> _years = [
     '1º',
@@ -39,19 +34,15 @@ class _StudentFormPageState extends State<StudentFormPage> {
     'Quinta',
     'Sexta',
   ];
-
   @override
   void initState() {
     super.initState();
-
     if (widget.student != null) {
       final student = widget.student!;
-
       _nameController.text = student.name;
       _paymentDayController.text = student.paymentDay.toString();
       _selectedLevel = student.schoolLevel;
       _selectedYear = student.schoolYear;
-
       for (final schedule in student.schedules) {
         _scheduleControllers.add({
           'weekDay': TextEditingController(text: schedule.weekDay),
@@ -60,7 +51,6 @@ class _StudentFormPageState extends State<StudentFormPage> {
         });
       }
     }
-
     if (_scheduleControllers.isEmpty) {
       _scheduleControllers.add({
         'weekDay': TextEditingController(),
@@ -74,13 +64,11 @@ class _StudentFormPageState extends State<StudentFormPage> {
   void dispose() {
     _nameController.dispose();
     _paymentDayController.dispose();
-
     for (final item in _scheduleControllers) {
       item['weekDay']?.dispose();
       item['startHour']?.dispose();
       item['endHour']?.dispose();
     }
-
     super.dispose();
   }
 
@@ -96,7 +84,6 @@ class _StudentFormPageState extends State<StudentFormPage> {
 
   void _removeScheduleField(int index) {
     if (_scheduleControllers.length == 1) return;
-
     setState(() {
       _scheduleControllers[index]['weekDay']?.dispose();
       _scheduleControllers[index]['startHour']?.dispose();
@@ -107,14 +94,11 @@ class _StudentFormPageState extends State<StudentFormPage> {
 
   void _saveStudent() {
     if (!_formKey.currentState!.validate()) return;
-
     final List<StudentSchedule> schedules = [];
-
     for (final item in _scheduleControllers) {
       final weekDay = item['weekDay']!.text.trim();
       final startHour = item['startHour']!.text.trim();
       final endHour = item['endHour']!.text.trim();
-
       if (weekDay.isNotEmpty && startHour.isNotEmpty && endHour.isNotEmpty) {
         schedules.add(
           StudentSchedule(
@@ -125,7 +109,6 @@ class _StudentFormPageState extends State<StudentFormPage> {
         );
       }
     }
-
     final student = Student(
       name: _nameController.text.trim(),
       schoolLevel: _selectedLevel!,
@@ -133,13 +116,11 @@ class _StudentFormPageState extends State<StudentFormPage> {
       paymentDay: int.parse(_paymentDayController.text.trim()),
       schedules: schedules,
     );
-
     Navigator.pop(context, student);
   }
 
   Widget _buildScheduleItem(int index) {
     final item = _scheduleControllers[index];
-
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
@@ -147,18 +128,15 @@ class _StudentFormPageState extends State<StudentFormPage> {
         child: Column(
           children: [
             DropdownButtonFormField<String>(
-              value: item['weekDay']!.text.isEmpty ? null : item['weekDay']!.text,
+              value: item['weekDay']!.text.isEmpty
+                  ? null
+                  : item['weekDay']!.text,
               decoration: const InputDecoration(
                 labelText: 'Dia da semana',
                 border: OutlineInputBorder(),
               ),
               items: _weekDays
-                  .map(
-                    (day) => DropdownMenuItem(
-                      value: day,
-                      child: Text(day),
-                    ),
-                  )
+                  .map((day) => DropdownMenuItem(value: day, child: Text(day)))
                   .toList(),
               onChanged: (value) {
                 item['weekDay']!.text = value ?? '';
@@ -218,7 +196,6 @@ class _StudentFormPageState extends State<StudentFormPage> {
   @override
   Widget build(BuildContext context) {
     final bool isEditing = widget.student != null;
-
     return Scaffold(
       appBar: AppBar(
         title: Text(isEditing ? 'Editar aluno' : 'Novo aluno'),
@@ -252,10 +229,8 @@ class _StudentFormPageState extends State<StudentFormPage> {
                 ),
                 items: _levels
                     .map(
-                      (level) => DropdownMenuItem(
-                        value: level,
-                        child: Text(level),
-                      ),
+                      (level) =>
+                          DropdownMenuItem(value: level, child: Text(level)),
                     )
                     .toList(),
                 onChanged: (value) {
@@ -279,10 +254,8 @@ class _StudentFormPageState extends State<StudentFormPage> {
                 ),
                 items: _years
                     .map(
-                      (year) => DropdownMenuItem(
-                        value: year,
-                        child: Text(year),
-                      ),
+                      (year) =>
+                          DropdownMenuItem(value: year, child: Text(year)),
                     )
                     .toList(),
                 onChanged: (value) {
@@ -309,12 +282,10 @@ class _StudentFormPageState extends State<StudentFormPage> {
                   if (value == null || value.trim().isEmpty) {
                     return 'Informe o dia de pagamento';
                   }
-
                   final paymentDay = int.tryParse(value);
                   if (paymentDay == null || paymentDay < 1 || paymentDay > 31) {
                     return 'Informe um dia válido entre 1 e 31';
                   }
-
                   return null;
                 },
               ),
@@ -325,8 +296,8 @@ class _StudentFormPageState extends State<StudentFormPage> {
               ),
               const SizedBox(height: 12),
               ..._scheduleControllers.asMap().entries.map(
-                    (entry) => _buildScheduleItem(entry.key),
-                  ),
+                (entry) => _buildScheduleItem(entry.key),
+              ),
               Align(
                 alignment: Alignment.centerLeft,
                 child: ElevatedButton.icon(
