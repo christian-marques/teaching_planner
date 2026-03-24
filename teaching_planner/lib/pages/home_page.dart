@@ -366,7 +366,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     return Stack(
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 112),
           child: ListView.builder(
             itemCount: _students.length,
             itemBuilder: (context, index) {
@@ -401,42 +401,74 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           left: 16,
           right: 16,
           bottom: 16,
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.green.shade700,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: const [
-                BoxShadow(
-                  color: Colors.black26,
-                  blurRadius: 8,
-                  offset: Offset(0, 2),
+          child: Row(
+            children: [
+              Expanded(
+                child: _buildTotalCard(
+                  title: 'Já recebi',
+                  value: _formatCurrency(_getReceivedTotal()),
+                  backgroundColor: const Color(0xFFF5DEB3),
+                  textColor: Colors.black87,
                 ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Já recebi: ${_formatCurrency(_getReceivedTotal())}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildTotalCard(
+                  title: 'Falta receber',
+                  value: _formatCurrency(_getPendingTotal()),
+                  backgroundColor: Colors.green.shade700,
+                  textColor: Colors.white,
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  'Falta receber: ${_formatCurrency(_getPendingTotal())}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildTotalCard({
+    required String title,
+    required String value,
+    required Color backgroundColor,
+    required Color textColor,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              color: textColor.withValues(alpha: 0.85),
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: TextStyle(
+              color: textColor,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
     );
   }
   
